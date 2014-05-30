@@ -59,7 +59,7 @@ afterEvaluate { project ->
 // Add Coremod Manifest
 jar {
     manifest {
-        attributes 'FMLCorePlugin': 'squeek.spiceoflife.asm.ASMPlugin'
+        attributes 'FMLCorePlugin': 'eyamaz.bnbtweaks.asm.ASMPlugin'
         attributes 'FMLCorePluginContainsFMLMod': 'true'
     }
 }
