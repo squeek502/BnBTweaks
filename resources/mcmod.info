@@ -1,0 +1,16 @@
+[
+{
+  "modid": "BnBTweaks",
+  "name": "Blood N' Bones Tweaks",
+  "description": "Various modifications to the game and/or other mods for the Blood N' Bones modpack",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authors": ["squeek"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
