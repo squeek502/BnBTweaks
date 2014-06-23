@@ -1,7 +1,6 @@
 package eyamaz.bnbtweaks.asm;
 
 import static org.objectweb.asm.Opcodes.*;
-import java.util.Iterator;
 import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -33,18 +32,18 @@ public class ClassTransformer implements IClassTransformer
 
 			return writeClassToBytes(classNode);
 		}
-		
+
 		if (name.equals("hostileworlds.dimension.gen.MapGenSchematics"))
 		{
 			ModBnBTweaks.Log.info("Patching HostileWorld's MapGenSchematis....");
-			
+
 			ClassNode classNode = readClassFromBytes(bytes);
 			MethodNode methodNode = findMethodNodeOfClass(classNode, "genTemple", "(Lnet/minecraft/world/World;II[B)V");
 			if (methodNode != null)
 			{
 				fixHostileWorldsMapGenSchematics(methodNode);
 			}
-			
+
 			return writeClassToBytes(classNode);
 		}
 
@@ -116,27 +115,18 @@ public class ClassTransformer implements IClassTransformer
 
 		ModBnBTweaks.Log.info(" Patched " + method.name);
 	}
-	
+
 	public void fixHostileWorldsMapGenSchematics(MethodNode method)
 	{
-		Iterator<AbstractInsnNode> iter = method.instructions.iterator();
+		AbstractInsnNode targetNode = findFirstInstructionOfType(method, ALOAD);
 		
-		AbstractInsnNode currentNode = null;
-		int index = -1;
+		InsnList toInject = new InsnList();
 		
-		//Iterate through all instructions within method
-		//Delete all instructions without Opcode -1 or 177
+		//Add return statement to beginning of method
 		
-		while (iter.hasNext())
-		{
-			index++;
-			currentNode = iter.next();
-			
-			if (currentNode.getOpcode() != -1 && currentNode.getOpcode() != 177)
-			{
-				method.instructions.remove(currentNode);
-			}
-		}
+		toInject.add(new InsnNode(RETURN));
+		
+		method.instructions.insertBefore(targetNode, toInject);
 		
 		ModBnBTweaks.Log.info(" Patched " + method.name);
 	}
