@@ -33,6 +33,20 @@ public class ClassTransformer implements IClassTransformer
 			return writeClassToBytes(classNode);
 		}
 
+		if (name.equals("hostileworlds.dimension.gen.MapGenSchematics"))
+		{
+			ModBnBTweaks.Log.info("Patching HostileWorld's MapGenSchematis....");
+
+			ClassNode classNode = readClassFromBytes(bytes);
+			MethodNode methodNode = findMethodNodeOfClass(classNode, "genTemple", "(Lnet/minecraft/world/World;II[B)V");
+			if (methodNode != null)
+			{
+				fixHostileWorldsMapGenSchematics(methodNode);
+			}
+
+			return writeClassToBytes(classNode);
+		}
+
 		return bytes;
 	}
 
@@ -102,4 +116,18 @@ public class ClassTransformer implements IClassTransformer
 		ModBnBTweaks.Log.info(" Patched " + method.name);
 	}
 
+	public void fixHostileWorldsMapGenSchematics(MethodNode method)
+	{
+		AbstractInsnNode targetNode = findFirstInstructionOfType(method, ALOAD);
+		
+		InsnList toInject = new InsnList();
+		
+		//Add return statement to beginning of method
+		
+		toInject.add(new InsnNode(RETURN));
+		
+		method.instructions.insertBefore(targetNode, toInject);
+		
+		ModBnBTweaks.Log.info(" Patched " + method.name);
+	}
 }
