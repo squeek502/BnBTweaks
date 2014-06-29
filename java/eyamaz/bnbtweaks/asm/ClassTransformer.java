@@ -1,10 +1,14 @@
 package eyamaz.bnbtweaks.asm;
 
 import static org.objectweb.asm.Opcodes.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.launchwrapper.IClassTransformer;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.*;
+
 import eyamaz.bnbtweaks.ModBnBTweaks;
 
 public class ClassTransformer implements IClassTransformer
@@ -46,6 +50,32 @@ public class ClassTransformer implements IClassTransformer
 
 			return writeClassToBytes(classNode);
 		}
+		
+		if (name.equals("net.minecraft.block.material.MaterialPortal") || name.equals("akf"))
+		{
+			boolean isObfuscated = name.equals("akf");
+			
+			ModBnBTweaks.Log.info("Patching Minecraft MaterialPortal");
+			
+			ClassNode classNode = readClassFromBytes(bytes);
+			
+			MethodNode methodNode = findMethodNodeOfClass(classNode, "isSolid", "()Z");
+			MethodNode obfMethodNode = findMethodNodeOfClass(classNode, "a", "()Z");
+			
+			if(methodNode != null || obfMethodNode != null)
+			{
+				if (!isObfuscated)
+				{
+					fixMinecraftMaterialPortal(methodNode);
+				}
+				else if (isObfuscated)
+				{
+					fixMinecraftMaterialPortal(obfMethodNode);
+				}
+			}
+			
+			return writeClassToBytes(classNode);
+		}
 
 		return bytes;
 	}
@@ -71,13 +101,13 @@ public class ClassTransformer implements IClassTransformer
 		{
 			if (method.name.equals(methodName) && method.desc.equals(methodDesc))
 			{
-				ModBnBTweaks.Log.info(" Found target method: " + methodName);
+				ModBnBTweaks.Log.info("Found target method: " + methodName);
 				return method;
 			}
 		}
 		return null;
 	}
-
+	
 	private AbstractInsnNode findFirstInstructionOfType(MethodNode method, int bytecode)
 	{
 		for (AbstractInsnNode instruction : method.instructions.toArray())
@@ -113,7 +143,7 @@ public class ClassTransformer implements IClassTransformer
 
 		method.instructions.insertBefore(targetNode, toInject);
 
-		ModBnBTweaks.Log.info(" Patched " + method.name);
+		ModBnBTweaks.Log.info("Patched " + method.name);
 	}
 
 	public void fixHostileWorldsMapGenSchematics(MethodNode method)
@@ -128,6 +158,23 @@ public class ClassTransformer implements IClassTransformer
 		
 		method.instructions.insertBefore(targetNode, toInject);
 		
-		ModBnBTweaks.Log.info(" Patched " + method.name);
+		ModBnBTweaks.Log.info("Patched " + method.name);
+	}
+	
+	public void fixMinecraftMaterialPortal(MethodNode method)
+	{
+		AbstractInsnNode targetNode = findFirstInstructionOfType(method, ICONST_0);
+		
+		InsnList toInject = new InsnList();
+		
+		//Change portals isSolid to return true, rather than false
+		//Causing liquids to no longer break them
+		
+		toInject.add(new InsnNode(ICONST_1));
+		
+		method.instructions.insert(targetNode, toInject);
+		method.instructions.remove(targetNode);
+		
+		ModBnBTweaks.Log.info("Patched: " + method.name);
 	}
 }
