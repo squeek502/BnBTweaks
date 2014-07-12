@@ -166,6 +166,16 @@ public class ClassTransformer implements IClassTransformer
 		return null;
 	}
 
+	private AbstractInsnNode findLastInstructionOfType(MethodNode method, int bytecode)
+	{
+		for (AbstractInsnNode instruction = method.instructions.getLast(); instruction != null; instruction = instruction.getPrevious())
+		{
+			if (instruction.getOpcode() == bytecode)
+				return instruction;
+		}
+		return null;
+	}
+
 	private AbstractInsnNode findChronoInstructionOfType(MethodNode method, int bytecode, int number)
 	{
 		int i = 0;
@@ -240,7 +250,7 @@ public class ClassTransformer implements IClassTransformer
 	public void captureIsSpawningFromSpawner(MethodNode method)
 	{
 		AbstractInsnNode firstNode = findFirstInstruction(method);
-		AbstractInsnNode lastNode = method.instructions.getLast();
+		AbstractInsnNode lastNode = findLastInstructionOfType(method, RETURN);
 
 		if (firstNode == null || lastNode == null || lastNode.getOpcode() != RETURN)
 			throw new RuntimeException("Could not find target nodes for MobSpawnerBaseLogic patch");
