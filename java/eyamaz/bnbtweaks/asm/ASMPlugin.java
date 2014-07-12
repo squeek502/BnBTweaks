@@ -3,6 +3,7 @@ package eyamaz.bnbtweaks.asm;
 import java.util.Map;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
+@IFMLLoadingPlugin.SortingIndex(100)
 public class ASMPlugin implements IFMLLoadingPlugin
 {
 	@Override

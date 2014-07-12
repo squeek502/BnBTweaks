@@ -7,6 +7,8 @@ import net.minecraft.launchwrapper.IClassTransformer;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
 import eyamaz.bnbtweaks.ModBnBTweaks;
@@ -76,10 +78,62 @@ public class ClassTransformer implements IClassTransformer
 			
 			return writeClassToBytes(classNode);
 		}
+		
+		if (name.equals("net.minecraft.tileentity.MobSpawnerBaseLogic") || name.equals("abn"))
+		{
+			boolean isObfuscated = name.equals("abn");
+			
+			ModBnBTweaks.Log.info("Patching Minecraft MobSpawnerBaseLogic");
+			
+			ClassNode classNode = readClassFromBytes(bytes);
+			
+			MethodNode methodNode = findMethodNodeOfClass(classNode, "updateSpawner", "()Z");
+			MethodNode obfMethodNode = findMethodNodeOfClass(classNode, "g", "()V");
+			
+			if (methodNode != null || obfMethodNode != null)
+			{
+				if (!isObfuscated)
+				{
+					addMinecraftMobSpawnerBaseLogicHook(methodNode);
+				}
+				else if (isObfuscated)
+				{
+					addMinecraftMobSpawnerBaseLogicHook(obfMethodNode);
+				}
+			}
+			
+			return writeClassToBytes(classNode);
+		}
+		
+		if (name.equals("net.minecraft.entity.monster.EntityMob") || name.equals("tm"))
+		{
+			boolean isObfuscated = name.equals("tm");
+
+			ModBnBTweaks.Log.info("Patching Minecraft EntityMob");
+
+			ClassNode classNode = readClassFromBytes(bytes);
+
+			MethodNode methodNode = findMethodNodeOfClass(classNode, "getCanSpawnHere", "()Z");
+			MethodNode obfMethodNode = findMethodNodeOfClass(classNode, "bs", "()Z");
+
+			if (methodNode != null || obfMethodNode != null)
+			{
+				if (!isObfuscated)
+				{
+					addMinecraftEntityMobHook(methodNode);
+				}
+
+				else if (isObfuscated)
+				{
+					addMinecraftEntityMobHook(obfMethodNode);
+				}
+			}
+			return writeClassToBytes(classNode);
+		}
 
 		return bytes;
 	}
-
+	
 	private ClassNode readClassFromBytes(byte[] bytes)
 	{
 		ClassNode classNode = new ClassNode();
@@ -117,7 +171,26 @@ public class ClassTransformer implements IClassTransformer
 		}
 		return null;
 	}
-
+	
+	private AbstractInsnNode findChronoInstructionOfType(MethodNode method, int bytecode, int number)
+	{
+		for (int i = 0; i < number;) 
+		{
+			for (AbstractInsnNode instruction : method.instructions.toArray())
+			{
+				if (instruction.getOpcode() == bytecode)
+				{
+					i++;
+					if (i == number)
+					{
+						return instruction;
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
 	public void fixExtraTiCMelting(MethodNode method)
 	{
 		AbstractInsnNode targetNode = findFirstInstructionOfType(method, ALOAD);
@@ -174,6 +247,53 @@ public class ClassTransformer implements IClassTransformer
 		
 		method.instructions.insert(targetNode, toInject);
 		method.instructions.remove(targetNode);
+		
+		ModBnBTweaks.Log.info("Patched: " + method.name);
+	}
+	
+	public void addMinecraftMobSpawnerBaseLogicHook(MethodNode method)
+	{
+		AbstractInsnNode firstNode = findFirstInstructionOfType(method, ALOAD);
+		AbstractInsnNode lastNode = findChronoInstructionOfType(method, RETURN, 4);
+		
+		InsnList firstInject = new InsnList();
+		InsnList lastInject = new InsnList();
+		
+		//Inject Hooks.isSpawningFromSpawner = true; to start
+		//inject Hooks.isSpawningFromSpawner = false; to end
+		
+		firstInject.add(new InsnNode(ICONST_1));
+		firstInject.add(new FieldInsnNode(PUTSTATIC, "eyamaz/bnbtweaks/asm/Hooks", "isSpawningFromSpawner", "Z"));
+		
+		lastInject.add(new InsnNode(ICONST_0));
+		lastInject.add(new FieldInsnNode(PUTSTATIC, "eyamaz/bnbtweaks/asm/Hooks", "isSpawningFromSpawner", "Z"));
+		
+		method.instructions.insertBefore(firstNode, firstInject);
+		method.instructions.insertBefore(lastNode, lastInject);
+		
+		ModBnBTweaks.Log.info("Patched: " + method.name);
+	}
+	
+	public void addMinecraftEntityMobHook(MethodNode method)
+	{
+		AbstractInsnNode firstTargetNode = findChronoInstructionOfType(method, ALOAD, 2);
+		AbstractInsnNode secondTargetNode = findChronoInstructionOfType(method, ALOAD, 3);
+		
+		InsnList firstInject = new InsnList();
+		InsnList secondInject = new InsnList();
+		
+		//Inject hook to create
+		//return this.worldObj.difficultySetting > 0 && (Hooks.isSpawningFromSpawner || this.isValidLightLevel()) && super.getCanSpawnHere();
+		
+		firstInject.add(new FieldInsnNode(GETSTATIC, "eyamaz/bnbtweaks/asm/Hooks", "isSpawningFromSpawner", "Z"));
+		LabelNode label = new LabelNode();
+		firstInject.add(new JumpInsnNode(IFNE, label));
+		
+		secondInject.add(label);
+		secondInject.add(new FrameNode(Opcodes.F_SAME, 0, null, 0, null));
+		
+		method.instructions.insertBefore(firstTargetNode, firstInject);
+		method.instructions.insertBefore(secondTargetNode, secondInject);
 		
 		ModBnBTweaks.Log.info("Patched: " + method.name);
 	}
