@@ -1,16 +1,11 @@
 package eyamaz.bnbtweaks.asm;
 
 import static org.objectweb.asm.Opcodes.*;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.launchwrapper.IClassTransformer;
-
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
-
 import eyamaz.bnbtweaks.ModBnBTweaks;
 
 public class ClassTransformer implements IClassTransformer
@@ -29,111 +24,93 @@ public class ClassTransformer implements IClassTransformer
 			{
 				fixExtraTiCMelting(methodNode);
 			}
+			else
+				throw new RuntimeException("Could not find _addMeltingOreRecipe(II) method in ExtraTiC RecipeHandler");
 
 			methodNode = findMethodNodeOfClass(classNode, "_addMeltingOreRecipe", "(Ljava/lang/String;Ljava/lang/String;III)V");
 			if (methodNode != null)
 			{
 				fixExtraTiCMelting(methodNode);
 			}
+			else
+				throw new RuntimeException("Could not find _addMeltingOreRecipe(III) method in ExtraTiC RecipeHandler");
 
 			return writeClassToBytes(classNode);
 		}
 
 		if (name.equals("hostileworlds.dimension.gen.MapGenSchematics"))
 		{
-			ModBnBTweaks.Log.info("Patching HostileWorld's MapGenSchematis....");
+			ModBnBTweaks.Log.info("Patching HostileWorld's MapGenSchematics....");
 
 			ClassNode classNode = readClassFromBytes(bytes);
 			MethodNode methodNode = findMethodNodeOfClass(classNode, "genTemple", "(Lnet/minecraft/world/World;II[B)V");
 			if (methodNode != null)
 			{
-				fixHostileWorldsMapGenSchematics(methodNode);
+				stopPyramidGeneration(methodNode);
 			}
+			else
+				throw new RuntimeException("Could not find genTemple method in HostileWorlds MapGenSchematics");
 
 			return writeClassToBytes(classNode);
 		}
-		
-		if (name.equals("net.minecraft.block.material.MaterialPortal") || name.equals("akf"))
+
+		if (transformedName.equals("net.minecraft.block.material.MaterialPortal"))
 		{
-			boolean isObfuscated = name.equals("akf");
-			
+			boolean isObfuscated = !name.equals(transformedName);
+
 			ModBnBTweaks.Log.info("Patching Minecraft MaterialPortal");
-			
+
 			ClassNode classNode = readClassFromBytes(bytes);
-			
-			MethodNode methodNode = findMethodNodeOfClass(classNode, "isSolid", "()Z");
-			MethodNode obfMethodNode = findMethodNodeOfClass(classNode, "a", "()Z");
-			
-			if(methodNode != null || obfMethodNode != null)
+			MethodNode methodNode = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "isSolid", "()Z");
+			if (methodNode != null)
 			{
-				if (!isObfuscated)
-				{
-					fixMinecraftMaterialPortal(methodNode);
-				}
-				else if (isObfuscated)
-				{
-					fixMinecraftMaterialPortal(obfMethodNode);
-				}
+				makePortalsSolidToFluid(methodNode);
 			}
-			
+			else
+				throw new RuntimeException("Could not find isSolid method in MaterialPortal");
+
 			return writeClassToBytes(classNode);
 		}
-		
-		if (name.equals("net.minecraft.tileentity.MobSpawnerBaseLogic") || name.equals("abn"))
+
+		if (transformedName.equals("net.minecraft.tileentity.MobSpawnerBaseLogic"))
 		{
-			boolean isObfuscated = name.equals("abn");
-			
+			boolean isObfuscated = !name.equals(transformedName);
+
 			ModBnBTweaks.Log.info("Patching Minecraft MobSpawnerBaseLogic");
-			
+
 			ClassNode classNode = readClassFromBytes(bytes);
-			
-			MethodNode methodNode = findMethodNodeOfClass(classNode, "updateSpawner", "()Z");
-			MethodNode obfMethodNode = findMethodNodeOfClass(classNode, "g", "()V");
-			
-			if (methodNode != null || obfMethodNode != null)
+			MethodNode methodNode = findMethodNodeOfClass(classNode, isObfuscated ? "g" : "updateSpawner", "()V");
+			if (methodNode != null)
 			{
-				if (!isObfuscated)
-				{
-					addMinecraftMobSpawnerBaseLogicHook(methodNode);
-				}
-				else if (isObfuscated)
-				{
-					addMinecraftMobSpawnerBaseLogicHook(obfMethodNode);
-				}
+				captureIsSpawningFromSpawner(methodNode);
 			}
-			
+			else
+				throw new RuntimeException("Could not find updateSpawner method in MobSpawnerBaseLogic");
+
 			return writeClassToBytes(classNode);
 		}
-		
-		if (name.equals("net.minecraft.entity.monster.EntityMob") || name.equals("tm"))
+
+		if (transformedName.equals("net.minecraft.entity.monster.EntityMob"))
 		{
-			boolean isObfuscated = name.equals("tm");
+			boolean isObfuscated = !name.equals(transformedName);
 
 			ModBnBTweaks.Log.info("Patching Minecraft EntityMob");
 
 			ClassNode classNode = readClassFromBytes(bytes);
-
-			MethodNode methodNode = findMethodNodeOfClass(classNode, "getCanSpawnHere", "()Z");
-			MethodNode obfMethodNode = findMethodNodeOfClass(classNode, "bs", "()Z");
-
-			if (methodNode != null || obfMethodNode != null)
+			MethodNode methodNode = findMethodNodeOfClass(classNode, isObfuscated ? "bs" : "getCanSpawnHere", "()Z");
+			if (methodNode != null)
 			{
-				if (!isObfuscated)
-				{
-					addMinecraftEntityMobHook(methodNode);
-				}
-
-				else if (isObfuscated)
-				{
-					addMinecraftEntityMobHook(obfMethodNode);
-				}
+				makeEntityMobIgnoreLightLevel(methodNode);
 			}
+			else
+				throw new RuntimeException("Could not find getCanSpawnHere method in EntityMob");
+
 			return writeClassToBytes(classNode);
 		}
 
 		return bytes;
 	}
-	
+
 	private ClassNode readClassFromBytes(byte[] bytes)
 	{
 		ClassNode classNode = new ClassNode();
@@ -161,7 +138,17 @@ public class ClassTransformer implements IClassTransformer
 		}
 		return null;
 	}
-	
+
+	private AbstractInsnNode findFirstInstruction(MethodNode method)
+	{
+		for (AbstractInsnNode instruction : method.instructions.toArray())
+		{
+			if (instruction.getType() != AbstractInsnNode.LABEL && instruction.getType() != AbstractInsnNode.LINE)
+				return instruction;
+		}
+		return null;
+	}
+
 	private AbstractInsnNode findFirstInstructionOfType(MethodNode method, int bytecode)
 	{
 		for (AbstractInsnNode instruction : method.instructions.toArray())
@@ -171,26 +158,18 @@ public class ClassTransformer implements IClassTransformer
 		}
 		return null;
 	}
-	
+
 	private AbstractInsnNode findChronoInstructionOfType(MethodNode method, int bytecode, int number)
 	{
-		for (int i = 0; i < number;) 
+		int i = 0;
+		for (AbstractInsnNode instruction : method.instructions.toArray())
 		{
-			for (AbstractInsnNode instruction : method.instructions.toArray())
-			{
-				if (instruction.getOpcode() == bytecode)
-				{
-					i++;
-					if (i == number)
-					{
-						return instruction;
-					}
-				}
-			}
+			if (instruction.getOpcode() == bytecode && ++i == number)
+				return instruction;
 		}
 		return null;
 	}
-	
+
 	public void fixExtraTiCMelting(MethodNode method)
 	{
 		AbstractInsnNode targetNode = findFirstInstructionOfType(method, ALOAD);
@@ -219,82 +198,88 @@ public class ClassTransformer implements IClassTransformer
 		ModBnBTweaks.Log.info("Patched " + method.name);
 	}
 
-	public void fixHostileWorldsMapGenSchematics(MethodNode method)
+	public void stopPyramidGeneration(MethodNode method)
 	{
 		AbstractInsnNode targetNode = findFirstInstructionOfType(method, ALOAD);
-		
+
 		InsnList toInject = new InsnList();
-		
+
 		//Add return statement to beginning of method
-		
+
 		toInject.add(new InsnNode(RETURN));
-		
+
 		method.instructions.insertBefore(targetNode, toInject);
-		
+
 		ModBnBTweaks.Log.info("Patched " + method.name);
 	}
-	
-	public void fixMinecraftMaterialPortal(MethodNode method)
+
+	public void makePortalsSolidToFluid(MethodNode method)
 	{
 		AbstractInsnNode targetNode = findFirstInstructionOfType(method, ICONST_0);
-		
+
 		InsnList toInject = new InsnList();
-		
+
 		//Change portals isSolid to return true, rather than false
 		//Causing liquids to no longer break them
-		
+
 		toInject.add(new InsnNode(ICONST_1));
-		
+
 		method.instructions.insert(targetNode, toInject);
 		method.instructions.remove(targetNode);
-		
+
 		ModBnBTweaks.Log.info("Patched: " + method.name);
 	}
-	
-	public void addMinecraftMobSpawnerBaseLogicHook(MethodNode method)
+
+	public void captureIsSpawningFromSpawner(MethodNode method)
 	{
-		AbstractInsnNode firstNode = findFirstInstructionOfType(method, ALOAD);
-		AbstractInsnNode lastNode = findChronoInstructionOfType(method, RETURN, 4);
+		AbstractInsnNode firstNode = findFirstInstruction(method);
+		AbstractInsnNode lastNode = method.instructions.getLast();
 		
+		if (firstNode == null || lastNode == null || lastNode.getOpcode() != RETURN)
+			throw new RuntimeException("Could not find target nodes for MobSpawnerBaseLogic patch");
+
 		InsnList firstInject = new InsnList();
 		InsnList lastInject = new InsnList();
-		
+
 		//Inject Hooks.isSpawningFromSpawner = true; to start
 		//inject Hooks.isSpawningFromSpawner = false; to end
-		
+
 		firstInject.add(new InsnNode(ICONST_1));
 		firstInject.add(new FieldInsnNode(PUTSTATIC, "eyamaz/bnbtweaks/asm/Hooks", "isSpawningFromSpawner", "Z"));
-		
+
 		lastInject.add(new InsnNode(ICONST_0));
 		lastInject.add(new FieldInsnNode(PUTSTATIC, "eyamaz/bnbtweaks/asm/Hooks", "isSpawningFromSpawner", "Z"));
-		
+
 		method.instructions.insertBefore(firstNode, firstInject);
 		method.instructions.insertBefore(lastNode, lastInject);
-		
+
 		ModBnBTweaks.Log.info("Patched: " + method.name);
 	}
-	
-	public void addMinecraftEntityMobHook(MethodNode method)
+
+	public void makeEntityMobIgnoreLightLevel(MethodNode method)
 	{
 		AbstractInsnNode firstTargetNode = findChronoInstructionOfType(method, ALOAD, 2);
 		AbstractInsnNode secondTargetNode = findChronoInstructionOfType(method, ALOAD, 3);
-		
+
+		if (firstTargetNode == null || secondTargetNode == null)
+			throw new RuntimeException("Could not find target nodes for EntityMob patch");
+
 		InsnList firstInject = new InsnList();
 		InsnList secondInject = new InsnList();
-		
+
 		//Inject hook to create
 		//return this.worldObj.difficultySetting > 0 && (Hooks.isSpawningFromSpawner || this.isValidLightLevel()) && super.getCanSpawnHere();
-		
+
 		firstInject.add(new FieldInsnNode(GETSTATIC, "eyamaz/bnbtweaks/asm/Hooks", "isSpawningFromSpawner", "Z"));
 		LabelNode label = new LabelNode();
 		firstInject.add(new JumpInsnNode(IFNE, label));
-		
+
 		secondInject.add(label);
 		secondInject.add(new FrameNode(Opcodes.F_SAME, 0, null, 0, null));
-		
+
 		method.instructions.insertBefore(firstTargetNode, firstInject);
 		method.instructions.insertBefore(secondTargetNode, secondInject);
-		
+
 		ModBnBTweaks.Log.info("Patched: " + method.name);
 	}
 }
