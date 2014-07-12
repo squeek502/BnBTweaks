@@ -105,6 +105,14 @@ public class ClassTransformer implements IClassTransformer
 			else
 				throw new RuntimeException("Could not find getCanSpawnHere method in EntityMob");
 
+			methodNode = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "getBlockPathWeight", "(III)F");
+			if (methodNode != null)
+			{
+				makeEntityMobIgnoreWorldLightLevel(methodNode);
+			}
+			else
+				throw new RuntimeException("Could not find getBlockPathWeight method in EntityMob");
+
 			return writeClassToBytes(classNode);
 		}
 
@@ -132,7 +140,6 @@ public class ClassTransformer implements IClassTransformer
 		{
 			if (method.name.equals(methodName) && method.desc.equals(methodDesc))
 			{
-				ModBnBTweaks.Log.info("Found target method: " + methodName);
 				return method;
 			}
 		}
@@ -234,7 +241,7 @@ public class ClassTransformer implements IClassTransformer
 	{
 		AbstractInsnNode firstNode = findFirstInstruction(method);
 		AbstractInsnNode lastNode = method.instructions.getLast();
-		
+
 		if (firstNode == null || lastNode == null || lastNode.getOpcode() != RETURN)
 			throw new RuntimeException("Could not find target nodes for MobSpawnerBaseLogic patch");
 
@@ -262,7 +269,7 @@ public class ClassTransformer implements IClassTransformer
 		AbstractInsnNode secondTargetNode = findChronoInstructionOfType(method, ALOAD, 3);
 
 		if (firstTargetNode == null || secondTargetNode == null)
-			throw new RuntimeException("Could not find target nodes for EntityMob patch");
+			throw new RuntimeException("Could not find target nodes for EntityMob." + method.name + " patch");
 
 		InsnList firstInject = new InsnList();
 		InsnList secondInject = new InsnList();
@@ -279,6 +286,33 @@ public class ClassTransformer implements IClassTransformer
 
 		method.instructions.insertBefore(firstTargetNode, firstInject);
 		method.instructions.insertBefore(secondTargetNode, secondInject);
+
+		ModBnBTweaks.Log.info("Patched: " + method.name);
+	}
+
+	public void makeEntityMobIgnoreWorldLightLevel(MethodNode method)
+	{
+		AbstractInsnNode targetNode = findFirstInstruction(method);
+
+		if (targetNode == null)
+			throw new RuntimeException("Could not find target node for EntityMob." + method.name + " patch");
+
+		InsnList toInject = new InsnList();
+
+		/*
+		// equivalent to:
+		if (Hooks.isSpawningFromSpawner)
+			return 0f;
+		*/
+
+		toInject.add(new FieldInsnNode(GETSTATIC, "eyamaz/bnbtweaks/asm/Hooks", "isSpawningFromSpawner", "Z"));
+		LabelNode label = new LabelNode();
+		toInject.add(new JumpInsnNode(IFEQ, label));
+		toInject.add(new InsnNode(FCONST_0));
+		toInject.add(new InsnNode(FRETURN));
+		toInject.add(label);
+
+		method.instructions.insertBefore(targetNode, toInject);
 
 		ModBnBTweaks.Log.info("Patched: " + method.name);
 	}
