@@ -115,6 +115,22 @@ public class ClassTransformer implements IClassTransformer
 
 			return writeClassToBytes(classNode);
 		}
+		
+		if (name.equals("lycanite.lycanitesmobs.api.entity.EntityCreatureBase"))
+		{
+			ModBnBTweaks.Log.info("Patching LycanitesMobs EntityCreatureBase");
+			
+			ClassNode classNode = readClassFromBytes(bytes);
+			MethodNode methodNode = findMethodNodeOfClass(classNode, "fixedSpawnCheck", "(Lnet/minecraft/world/World;III)Z");
+			if (methodNode != null)
+			{
+				makeLycanitesMobsIgnoreLightLevel(methodNode);
+			}
+			else 
+				throw new RuntimeException("Could not find fixedSpawnCheck in EntityCreatureBase");
+			
+			return writeClassToBytes(classNode);
+		}
 
 		return bytes;
 	}
@@ -324,6 +340,48 @@ public class ClassTransformer implements IClassTransformer
 
 		method.instructions.insertBefore(targetNode, toInject);
 
+		ModBnBTweaks.Log.info("Patched: " + method.name);
+	}
+	
+	public void makeLycanitesMobsIgnoreLightLevel(MethodNode method)
+	{
+		AbstractInsnNode firstTargetNode = findFirstInstructionOfType(method, IF_ICMPLE);
+		AbstractInsnNode secondTargetNode = findFirstInstructionOfType(method, IF_ICMPGE);
+		AbstractInsnNode thirdTargetNode = findFirstInstructionOfType(method, IRETURN);
+		AbstractInsnNode fourthTargetNode = findChronoInstructionOfType(method, IRETURN, 2);
+		
+		if (firstTargetNode == null || secondTargetNode == null || thirdTargetNode == null || fourthTargetNode == null)
+			throw new RuntimeException("Could not find target node for EntityCreatureBase" + method.name + "patch");
+		
+		InsnList firstInject = new InsnList();
+		InsnList secondInject = new InsnList();
+		InsnList firstLabelInject = new InsnList();
+		InsnList secondLabelInject = new InsnList();
+		
+		/*
+		 * Equivalent to:                                           |          Injection             |
+		if(this.spawnsInDarkness && this.testLightLevel(i, j, k) > 1 && !Hooks.isSpawningFromSpawner)
+    		return false;
+    	if(this.spawnsOnlyInLight && this.testLightLevel(i, j, k) < 2 && !Hooks.isSpawningFromSpawner)
+    		return false;
+		*/
+		
+		firstInject.add(new FieldInsnNode(GETSTATIC, "eyamaz/bnbtweaks/asm/Hooks", "isSpawningFromSpawner", "Z"));
+		LabelNode label1 = new LabelNode();
+		firstInject.add(new JumpInsnNode(IFNE, label1));
+		
+		secondInject.add(new FieldInsnNode(GETSTATIC, "eyamaz/bnbtweaks/asm/Hooks", "isSpawningFromSpawner", "Z"));
+		LabelNode label2 = new LabelNode();
+		secondInject.add(new JumpInsnNode(IFNE, label2));
+		
+		firstLabelInject.add(label1);
+		secondLabelInject.add(label2);
+		
+		method.instructions.insert(firstTargetNode, firstInject);
+		method.instructions.insert(secondTargetNode, secondInject);
+		method.instructions.insert(thirdTargetNode, firstLabelInject);
+		method.instructions.insert(fourthTargetNode, secondLabelInject);
+		
 		ModBnBTweaks.Log.info("Patched: " + method.name);
 	}
 }
