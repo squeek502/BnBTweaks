@@ -9,23 +9,14 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import eyamaz.bnbtweaks.ModBnBTweaks;
 import eyamaz.bnbtweaks.ModConfig;
 
 public class ClassTransformer implements IClassTransformer
 {
-	private boolean configsInit = false;
-
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] bytes)
 	{
-		if (!configsInit)
-		{
-			ModConfig.init();
-			configsInit = true;
-		}
-
 		if (ModConfig.patchExtraTicRecipeHandler)
 		{
 			if (name.equals("glassmaker.extratic.common.RecipeHandler"))
@@ -169,7 +160,7 @@ public class ClassTransformer implements IClassTransformer
 				ModBnBTweaks.Log.info("Patching Minecraft ChunkProviderServer");
 
 				ClassNode classNode = readClassFromBytes(bytes);
-				MethodNode methodNode = findMethodNodeOfClass(classNode, isObfuscated ? "func_73156_b" : "unloadQueuedChunks", "()Z");
+				MethodNode methodNode = findMethodNodeOfClass(classNode, isObfuscated ? "c" : "unloadQueuedChunks", "()Z");
 
 				if (methodNode != null)
 				{
@@ -438,14 +429,12 @@ public class ClassTransformer implements IClassTransformer
 	{
 		AbstractInsnNode firstTargetNode = findChronoInstructionOfType(method, ALOAD, 12);
 		AbstractInsnNode secondTargetNode = findChronoInstructionOfType(method, INVOKESTATIC, 4);
-		AbstractInsnNode thirdTargetNode = findChronoInstructionOfType(method, Opcodes.F_SAME, 2);
 
-		if (firstTargetNode == null || secondTargetNode == null | thirdTargetNode == null)
+		if (firstTargetNode == null || secondTargetNode == null)
 			throw new RuntimeException("Could not find target node for ChunkProviderServer." + method.name + " patch");
 
 		InsnList firstInject = new InsnList();
 		InsnList secondInject = new InsnList();
-		InsnList thirdInject = new InsnList();
 
 		/*
 		 * Adds an if chunk != null statement around the offending area lines
@@ -457,15 +446,9 @@ public class ClassTransformer implements IClassTransformer
 		firstInject.add(new VarInsnNode(ALOAD, 3));
 
 		secondInject.add(label);
-		secondInject.add(new FrameNode(Opcodes.F_APPEND, 2, new Object[]
-		{ "java/lang/Long", "net/minecraft/world/chunk/Chunk" }, 0, null));
-
-		thirdInject.add(new FrameNode(Opcodes.F_CHOP, 2, null, 0, null));
 
 		method.instructions.insert(firstTargetNode, firstInject);
 		method.instructions.insert(secondTargetNode, secondInject);
-		method.instructions.insert(thirdTargetNode, thirdInject);
-		method.instructions.remove(thirdTargetNode);
 
 		ModBnBTweaks.Log.info("Patched: " + method.name);
 	}

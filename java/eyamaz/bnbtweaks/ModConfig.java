@@ -5,9 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -26,11 +23,9 @@ public class ModConfig
 	private static Properties properties = new Properties();
 	private static File configFile;
 
-	public static void init()
+	public static void init(File mcLocation)
 	{
-		File directory = new File(Paths.get("").toAbsolutePath().toString());
-
-		registerConfigs(directory);
+		configFile = new File(mcLocation + "/config/" + ModInfo.MODID + ".cfg");
 
 		if (configFile != null)
 		{
@@ -45,14 +40,8 @@ public class ModConfig
 
 	}
 
-	public static void registerConfigs(File directory)
-	{
-		configFile = new File(directory + "/config/" + ModInfo.MODID + ".dat");
-	}
-
 	public static void readConfig()
 	{
-
 		String patchExtraTicRecipeHandlerKey = "patchExtraTicRecipeHandler";
 		String patchHostileWorldsMapGenSchematicsKey = "patchHostileWorldsMapGenSchematics";
 		String patchLycanitesMobsEntityCreatureBaseKey = "patchLycanitesMobsEntityCreatureBase";
@@ -134,10 +123,7 @@ public class ModConfig
 
 	public static void saveMap(File file, Map<String, String> map)
 	{
-		for (Map.Entry<String, String> entry : map.entrySet())
-		{
-			properties.putAll(config);
-		}
+		properties.putAll(config);
 		try
 		{
 			properties.store(new FileOutputStream(file), null);
@@ -150,7 +136,7 @@ public class ModConfig
 		}
 	}
 
-	public static void loadMap(File file, Map map)
+	public static void loadMap(File file, Map<String, String> map)
 	{
 		try
 		{
