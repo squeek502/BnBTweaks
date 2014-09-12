@@ -1,6 +1,7 @@
 package eyamaz.bnbtweaks;
 
 import java.util.logging.Logger;
+
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -21,7 +22,6 @@ public class ModBnBTweaks
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event)
 	{
-		//ModConfig.init(event.getSuggestedConfigurationFile());
 	}
 
 	@EventHandler
