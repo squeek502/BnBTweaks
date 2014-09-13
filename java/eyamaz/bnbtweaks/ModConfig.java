@@ -54,7 +54,8 @@ public class ModConfig
 		{
 			String stringPatchExtraTicRecipeHandler = config.get(fixExtraTiCIngotsPerOreKey);
 			fixExtraTiCIngotsPerOre = (stringPatchExtraTicRecipeHandler.equalsIgnoreCase("true"));
-		} else
+		}
+		else
 		{
 			config.put(fixExtraTiCIngotsPerOreKey, "true");
 			fixExtraTiCIngotsPerOre = true;
@@ -64,7 +65,8 @@ public class ModConfig
 		{
 			String stringPatchHostileWorldsMapGenSchematics = config.get(fixHostileWorldsBossSuffocatingKey);
 			fixHostileWorldsBossSuffocating = (stringPatchHostileWorldsMapGenSchematics.equalsIgnoreCase("true"));
-		} else
+		}
+		else
 		{
 			config.put(fixHostileWorldsBossSuffocatingKey, "true");
 			fixHostileWorldsBossSuffocating = true;
@@ -74,7 +76,8 @@ public class ModConfig
 		{
 			String stringpatchMinecraftMobSpawnerLogic = config.get(makeMobSpawnersIgnoreLightLevelsKey);
 			makeMobSpawnersIgnoreLightLevels = (stringpatchMinecraftMobSpawnerLogic.equalsIgnoreCase("true"));
-		} else
+		}
+		else
 		{
 			config.put(makeMobSpawnersIgnoreLightLevelsKey, "true");
 			makeMobSpawnersIgnoreLightLevels = true;
@@ -84,7 +87,8 @@ public class ModConfig
 		{
 			String stringpatchMinecraftMaterialPortal = config.get(makePortalsSolidToFluidsKey);
 			makePortalsSolidToFluids = (stringpatchMinecraftMaterialPortal.equalsIgnoreCase("true"));
-		} else
+		}
+		else
 		{
 			config.put(makePortalsSolidToFluidsKey, "true");
 			makePortalsSolidToFluids = true;
@@ -94,7 +98,8 @@ public class ModConfig
 		{
 			String stringpatchMinecraftChunkProviderServer = config.get(fixNetherCrashKey);
 			fixNetherCrash = (stringpatchMinecraftChunkProviderServer.equalsIgnoreCase("true"));
-		} else
+		}
+		else
 		{
 			config.put(fixNetherCrashKey, "true");
 			fixNetherCrash = true;
@@ -107,10 +112,12 @@ public class ModConfig
 		try
 		{
 			properties.store(new FileOutputStream(file), null);
-		} catch (FileNotFoundException e)
+		}
+		catch (FileNotFoundException e)
 		{
 			e.printStackTrace();
-		} catch (IOException e)
+		}
+		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
@@ -121,10 +128,12 @@ public class ModConfig
 		try
 		{
 			properties.load(new FileInputStream(file));
-		} catch (FileNotFoundException e)
+		}
+		catch (FileNotFoundException e)
 		{
 			e.printStackTrace();
-		} catch (IOException e)
+		}
+		catch (IOException e)
 		{
 			e.printStackTrace();
 		}

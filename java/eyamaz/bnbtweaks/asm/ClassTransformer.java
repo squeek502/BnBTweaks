@@ -1,14 +1,11 @@
 package eyamaz.bnbtweaks.asm;
 
 import static org.objectweb.asm.Opcodes.*;
-
 import net.minecraft.launchwrapper.IClassTransformer;
-
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
-
 import eyamaz.bnbtweaks.ModBnBTweaks;
 import eyamaz.bnbtweaks.ModConfig;
 
@@ -28,14 +25,16 @@ public class ClassTransformer implements IClassTransformer
 				if (methodNode != null)
 				{
 					fixExtraTiCMelting(methodNode);
-				} else
+				}
+				else
 					throw new RuntimeException("Could not find _addMeltingOreRecipe(II) method in ExtraTiC RecipeHandler");
 
 				methodNode = findMethodNodeOfClass(classNode, "_addMeltingOreRecipe", "(Ljava/lang/String;Ljava/lang/String;III)V");
 				if (methodNode != null)
 				{
 					fixExtraTiCMelting(methodNode);
-				} else
+				}
+				else
 					throw new RuntimeException("Could not find _addMeltingOreRecipe(III) method in ExtraTiC RecipeHandler");
 
 				return writeClassToBytes(classNode);
@@ -54,7 +53,8 @@ public class ClassTransformer implements IClassTransformer
 				if (methodNode != null)
 				{
 					stopPyramidGeneration(methodNode);
-				} else
+				}
+				else
 					throw new RuntimeException("Could not find genTemple method in HostileWorlds MapGenSchematics");
 
 				return writeClassToBytes(classNode);
@@ -75,7 +75,8 @@ public class ClassTransformer implements IClassTransformer
 				if (methodNode != null)
 				{
 					makePortalsSolidToFluid(methodNode);
-				} else
+				}
+				else
 					throw new RuntimeException("Could not find isSolid method in MaterialPortal");
 
 				return writeClassToBytes(classNode);
@@ -96,7 +97,8 @@ public class ClassTransformer implements IClassTransformer
 				if (methodNode != null)
 				{
 					captureIsSpawningFromSpawner(methodNode);
-				} else
+				}
+				else
 					throw new RuntimeException("Could not find updateSpawner method in MobSpawnerBaseLogic");
 
 				return writeClassToBytes(classNode);
@@ -112,14 +114,16 @@ public class ClassTransformer implements IClassTransformer
 				if (methodNode != null)
 				{
 					makeEntityMobIgnoreLightLevel(methodNode);
-				} else
+				}
+				else
 					throw new RuntimeException("Could not find getCanSpawnHere method in EntityMob");
 
 				methodNode = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "getBlockPathWeight", "(III)F");
 				if (methodNode != null)
 				{
 					makeEntityMobIgnoreWorldLightLevel(methodNode);
-				} else
+				}
+				else
 					throw new RuntimeException("Could not find getBlockPathWeight method in EntityMob");
 
 				return writeClassToBytes(classNode);
@@ -134,7 +138,8 @@ public class ClassTransformer implements IClassTransformer
 				if (methodNode != null)
 				{
 					makeLycanitesMobsIgnoreLightLevel(methodNode);
-				} else
+				}
+				else
 					throw new RuntimeException("Could not find fixedSpawnCheck in EntityCreatureBase");
 
 				return writeClassToBytes(classNode);
@@ -156,7 +161,8 @@ public class ClassTransformer implements IClassTransformer
 				if (methodNode != null)
 				{
 					addIfChunkNull(methodNode);
-				} else
+				}
+				else
 					throw new RuntimeException("Could not find unloadQueuedChunks method in ChunkProviderServer");
 
 				return writeClassToBytes(classNode);
@@ -392,9 +398,9 @@ public class ClassTransformer implements IClassTransformer
 		/*
 		 * Equivalent to:                                           |          Injection             |
 		if(this.spawnsInDarkness && this.testLightLevel(i, j, k) > 1 && !Hooks.isSpawningFromSpawner)
-    		return false;
-    	if(this.spawnsOnlyInLight && this.testLightLevel(i, j, k) < 2 && !Hooks.isSpawningFromSpawner)
-    		return false;
+			return false;
+		if(this.spawnsOnlyInLight && this.testLightLevel(i, j, k) < 2 && !Hooks.isSpawningFromSpawner)
+			return false;
 		*/
 
 		firstInject.add(new FieldInsnNode(GETSTATIC, "eyamaz/bnbtweaks/asm/Hooks", "isSpawningFromSpawner", "Z"));
