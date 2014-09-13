@@ -17,7 +17,7 @@ public class ClassTransformer implements IClassTransformer
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] bytes)
 	{
-		if (ModConfig.patchExtraTicRecipeHandler)
+		if (ModConfig.fixExtraTiCIngotsPerOre)
 		{
 			if (name.equals("glassmaker.extratic.common.RecipeHandler"))
 			{
@@ -42,7 +42,7 @@ public class ClassTransformer implements IClassTransformer
 			}
 		}
 
-		if (ModConfig.patchHostileWorldsMapGenSchematics)
+		if (ModConfig.fixHostileWorldsBossSuffocating)
 		{
 
 			if (name.equals("hostileworlds.dimension.gen.MapGenSchematics"))
@@ -61,7 +61,7 @@ public class ClassTransformer implements IClassTransformer
 			}
 		}
 
-		if (ModConfig.patchMinecraftMaterialPortal)
+		if (ModConfig.makePortalsSolidToFluids)
 		{
 
 			if (transformedName.equals("net.minecraft.block.material.MaterialPortal"))
@@ -82,7 +82,7 @@ public class ClassTransformer implements IClassTransformer
 			}
 		}
 
-		if (ModConfig.patchMinecraftMobSpawnerLogic)
+		if (ModConfig.makeMobSpawnersIgnoreLightLevels)
 		{
 
 			if (transformedName.equals("net.minecraft.tileentity.MobSpawnerBaseLogic"))
@@ -101,11 +101,6 @@ public class ClassTransformer implements IClassTransformer
 
 				return writeClassToBytes(classNode);
 			}
-		}
-
-		if (ModConfig.patchMinecraftEntityMob)
-		{
-
 			if (transformedName.equals("net.minecraft.entity.monster.EntityMob"))
 			{
 				boolean isObfuscated = !name.equals(transformedName);
@@ -129,10 +124,6 @@ public class ClassTransformer implements IClassTransformer
 
 				return writeClassToBytes(classNode);
 			}
-		}
-
-		if (ModConfig.patchLycanitesMobsEntityCreatureBase)
-		{
 
 			if (name.equals("lycanite.lycanitesmobs.api.entity.EntityCreatureBase"))
 			{
@@ -150,7 +141,7 @@ public class ClassTransformer implements IClassTransformer
 			}
 		}
 
-		if (ModConfig.patchMinecraftChunkProviderServer)
+		if (ModConfig.fixNetherCrash)
 		{
 
 			if (transformedName.equals("net.minecraft.world.gen.ChunkProviderServer"))

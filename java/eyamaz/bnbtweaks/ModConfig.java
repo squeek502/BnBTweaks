@@ -11,13 +11,20 @@ import java.util.Properties;
 
 public class ModConfig
 {
-	public static boolean patchLycanitesMobsEntityCreatureBase = false;
-	public static boolean patchExtraTicRecipeHandler = false;
-	public static boolean patchHostileWorldsMapGenSchematics = false;
-	public static boolean patchMinecraftMobSpawnerLogic = false;
-	public static boolean patchMinecraftMaterialPortal = false;
-	public static boolean patchMinecraftEntityMob = false;
-	public static boolean patchMinecraftChunkProviderServer = false;
+	public static final String fixExtraTiCIngotsPerOreKey = "fixExtraTiCIngotsPerOre";
+	public static boolean fixExtraTiCIngotsPerOre = false;
+
+	public static final String fixHostileWorldsBossSuffocatingKey = "fixHostileWorldsBossSuffocating";
+	public static boolean fixHostileWorldsBossSuffocating = false;
+
+	public static final String makeMobSpawnersIgnoreLightLevelsKey = "makeMobSpawnersIgnoreLightLevels";
+	public static boolean makeMobSpawnersIgnoreLightLevels = false;
+
+	public static final String makePortalsSolidToFluidsKey = "makePortalsSolidToFluids";
+	public static boolean makePortalsSolidToFluids = false;
+
+	public static final String fixNetherCrashKey = "fixNetherCrash";
+	public static boolean fixNetherCrash = false;
 
 	public static Map<String, String> config = new HashMap<String, String>();
 	private static Properties properties = new Properties();
@@ -42,82 +49,55 @@ public class ModConfig
 
 	public static void readConfig()
 	{
-		String patchExtraTicRecipeHandlerKey = "patchExtraTicRecipeHandler";
-		String patchHostileWorldsMapGenSchematicsKey = "patchHostileWorldsMapGenSchematics";
-		String patchLycanitesMobsEntityCreatureBaseKey = "patchLycanitesMobsEntityCreatureBase";
-		String patchMinecraftMobSpawnerLogicKey = "patchMinecraftMobSpawnerLogic";
-		String patchMinecraftMaterialPortalKey = "patchMinecraftMaterialPortal";
-		String patchMinecraftEntityMobKey = "patchMinecraftEntityMob";
-		String patchMinecraftChunkProviderServerKey = "patchMinecraftChunkProviderServer";
 
-		if (config.containsKey(patchExtraTicRecipeHandlerKey))
+		if (config.containsKey(fixExtraTiCIngotsPerOreKey))
 		{
-			String stringPatchExtraTicRecipeHandler = config.get(patchExtraTicRecipeHandlerKey);
-			patchExtraTicRecipeHandler = (stringPatchExtraTicRecipeHandler.equalsIgnoreCase("true"));
+			String stringPatchExtraTicRecipeHandler = config.get(fixExtraTiCIngotsPerOreKey);
+			fixExtraTiCIngotsPerOre = (stringPatchExtraTicRecipeHandler.equalsIgnoreCase("true"));
 		} else
 		{
-			config.put(patchExtraTicRecipeHandlerKey, "true");
-			patchExtraTicRecipeHandler = true;
+			config.put(fixExtraTiCIngotsPerOreKey, "true");
+			fixExtraTiCIngotsPerOre = true;
 		}
 
-		if (config.containsKey(patchHostileWorldsMapGenSchematicsKey))
+		if (config.containsKey(fixHostileWorldsBossSuffocatingKey))
 		{
-			String stringPatchHostileWorldsMapGenSchematics = config.get(patchHostileWorldsMapGenSchematicsKey);
-			patchHostileWorldsMapGenSchematics = (stringPatchHostileWorldsMapGenSchematics.equalsIgnoreCase("true"));
+			String stringPatchHostileWorldsMapGenSchematics = config.get(fixHostileWorldsBossSuffocatingKey);
+			fixHostileWorldsBossSuffocating = (stringPatchHostileWorldsMapGenSchematics.equalsIgnoreCase("true"));
 		} else
 		{
-			config.put(patchHostileWorldsMapGenSchematicsKey, "true");
-			patchHostileWorldsMapGenSchematics = true;
+			config.put(fixHostileWorldsBossSuffocatingKey, "true");
+			fixHostileWorldsBossSuffocating = true;
 		}
 
-		if (config.containsKey(patchLycanitesMobsEntityCreatureBaseKey))
+		if (config.containsKey(makeMobSpawnersIgnoreLightLevelsKey))
 		{
-			String stringpatchLycanitesMobsEntityCreatureBase = config.get(patchLycanitesMobsEntityCreatureBaseKey);
-			patchLycanitesMobsEntityCreatureBase = (stringpatchLycanitesMobsEntityCreatureBase.equalsIgnoreCase("true"));
+			String stringpatchMinecraftMobSpawnerLogic = config.get(makeMobSpawnersIgnoreLightLevelsKey);
+			makeMobSpawnersIgnoreLightLevels = (stringpatchMinecraftMobSpawnerLogic.equalsIgnoreCase("true"));
 		} else
 		{
-			config.put(patchLycanitesMobsEntityCreatureBaseKey, "true");
-			patchLycanitesMobsEntityCreatureBase = true;
+			config.put(makeMobSpawnersIgnoreLightLevelsKey, "true");
+			makeMobSpawnersIgnoreLightLevels = true;
 		}
 
-		if (config.containsKey(patchMinecraftMobSpawnerLogicKey))
+		if (config.containsKey(makePortalsSolidToFluidsKey))
 		{
-			String stringpatchMinecraftMobSpawnerLogic = config.get(patchMinecraftMobSpawnerLogicKey);
-			patchMinecraftMobSpawnerLogic = (stringpatchMinecraftMobSpawnerLogic.equalsIgnoreCase("true"));
+			String stringpatchMinecraftMaterialPortal = config.get(makePortalsSolidToFluidsKey);
+			makePortalsSolidToFluids = (stringpatchMinecraftMaterialPortal.equalsIgnoreCase("true"));
 		} else
 		{
-			config.put(patchMinecraftMobSpawnerLogicKey, "true");
-			patchMinecraftMobSpawnerLogic = true;
+			config.put(makePortalsSolidToFluidsKey, "true");
+			makePortalsSolidToFluids = true;
 		}
 
-		if (config.containsKey(patchMinecraftMaterialPortalKey))
+		if (config.containsKey(fixNetherCrashKey))
 		{
-			String stringpatchMinecraftMaterialPortal = config.get(patchMinecraftMaterialPortalKey);
-			patchMinecraftMaterialPortal = (stringpatchMinecraftMaterialPortal.equalsIgnoreCase("true"));
+			String stringpatchMinecraftChunkProviderServer = config.get(fixNetherCrashKey);
+			fixNetherCrash = (stringpatchMinecraftChunkProviderServer.equalsIgnoreCase("true"));
 		} else
 		{
-			config.put(patchMinecraftMaterialPortalKey, "true");
-			patchMinecraftMaterialPortal = true;
-		}
-
-		if (config.containsKey(patchMinecraftEntityMobKey))
-		{
-			String stringpatchMinecraftEntityMob = config.get(patchMinecraftEntityMobKey);
-			patchMinecraftEntityMob = (stringpatchMinecraftEntityMob.equalsIgnoreCase("true"));
-		} else
-		{
-			config.put(patchMinecraftEntityMobKey, "true");
-			patchMinecraftEntityMob = true;
-		}
-
-		if (config.containsKey(patchMinecraftChunkProviderServerKey))
-		{
-			String stringpatchMinecraftChunkProviderServer = config.get(patchMinecraftChunkProviderServerKey);
-			patchMinecraftChunkProviderServer = (stringpatchMinecraftChunkProviderServer.equalsIgnoreCase("true"));
-		} else
-		{
-			config.put(patchMinecraftChunkProviderServerKey, "true");
-			patchMinecraftChunkProviderServer = true;
+			config.put(fixNetherCrashKey, "true");
+			fixNetherCrash = true;
 		}
 	}
 
